@@ -35,7 +35,6 @@ setSettings  <- function(project=NULL, new.project=NULL, level=5) {
   
   if (!is.null(project) & is.null(new.project)) 
     new.project <- project
-  print(project)
   n <- 9
   
   level <- round(level)

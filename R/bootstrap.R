@@ -95,22 +95,23 @@ bootmlx <- function(project, nboot = 100, dataFolder = NULL, settings = NULL){
     generateBootstrap(project=project, settings=settings, dataFolder=dataFolder)
   }
   
-  paramResults <- array(dim = c(settings$nboot, length(param))) 
+  #paramResults <- array(dim = c(settings$nboot, length(param))) 
+  paramResults <- NULL 
   for(indexSample in 1:settings$nboot){
     projectBoot <-  paste0(exportDir,'/bootstrap/',projectName,'_bootstrap_',toString(indexSample),'.mlxtran')
     loadProject(projectBoot)
     cat(paste0('Project ',toString(indexSample),'/',toString(settings$nboot)))
     
     # Check if the run was done
-    # if(!file.exists(paste0(getProjectSettings()$directory,'/populationParameters.txt'))){
-    launched.tasks <- getLaunchedTasks()
-    if (!launched.tasks[["populationParameterEstimation"]]) {
-      cat(' => Running SAEM \n')
+   # if(!file.exists(paste0(getProjectSettings()$directory,'/populationParameters.txt'))){
+      launched.tasks <- getLaunchedTasks()
+      if (!launched.tasks[["populationParameterEstimation"]]) {
+        cat(' => Running SAEM \n')
       runScenario()
     }else{
       cat(' => already computed \n')
     }
-    paramResults[indexSample,] <-   getEstimatedPopulationParameters();
+    paramResults <-  rbind(paramResults, getEstimatedPopulationParameters())
   }
   colnames(paramResults) <- names(getEstimatedPopulationParameters())
   paramResults <- as.data.frame(paramResults)
@@ -118,7 +119,7 @@ bootmlx <- function(project, nboot = 100, dataFolder = NULL, settings = NULL){
   
   # Plot the results
   if (plot.res) {
-    nbFig <- length(param)
+    nbFig <- ncol(paramResults)
     x_NbFig <- ceiling(max(sqrt(nbFig),1)); y_NbFig <- ceiling(nbFig/x_NbFig)
     par(mfrow = c(x_NbFig, y_NbFig), oma = c(0, 3, 1, 1), mar = c(3, 1, 0, 3), mgp = c(1, 1, 0), xpd = NA)
     for(indexFigure in 1:nbFig){
