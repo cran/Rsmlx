@@ -29,8 +29,6 @@
 #' }
 #' @return a list with the computed confidence intervals, the method used and the level.
 #' @examples
-#' initializeMlxConnectors(software = "monolix")
-#' 
 #' # RsmlxDemo2.mlxtran is a Monolix project for modelling the PK of warfarin using a PK model 
 #' # with parameters ka, V, Cl.
 #' 
@@ -53,21 +51,27 @@
 #' r3 <- confintmlx(project="RsmlxDemo2.mlxtran", method="bootstrap", nboot=200)
 #' 
 #' # See http://rsmlx.webpopix.org/userguide/confintmlx/ for detailed examples of use of confintmlx
-#' # Download the demo examples here: http://rsmlx.webpopix.org/Rsmlx/Rsmlx10_demos.zip
+#' # Download the demo examples here: http://rsmlx.webpopix.org/installation
+#'
+#' 
 #' @importFrom stats qchisq
 #' @export
 confintmlx <- function(project, parameters="all", method="fim", level=0.90, 
                        linearization=TRUE, nboot=100, settings=NULL)
 {
+  
   r <- prcheck(project, f="conf", level=level, method=method )
   if (r$demo)
     return(r$res)
   project <- r$project
   
-  launched.tasks <- getLaunchedTasks()
+  if (level<=0 | level>=1)
+    stop("Level of the confidence interval should be strictly between 0 and 1", call.=FALSE)
+  
+  launched.tasks <- mlx.getLaunchedTasks()
   if (!launched.tasks[["populationParameterEstimation"]]) {
     cat("\nEstimation of the population parameters... \n")
-    runPopulationParameterEstimation()
+    mlx.runPopulationParameterEstimation()
   }
   
   
@@ -86,55 +90,37 @@ confintmlx <- function(project, parameters="all", method="fim", level=0.90,
     r.boot <- bootmlx(project, nboot=nboot, settings=list(plot=FALSE, level=level))
     c.inf <- apply(r.boot,MARGIN=2, quantile,(1-level)/2)
     c.sup <- apply(r.boot,MARGIN=2, quantile,(1+level)/2)
-    lp <- loadProject(project) 
+    lp <- mlx.loadProject(project) 
     if (!lp) return()
-    c.est <- getEstimatedPopulationParameters()
-    ci <- data.frame(estimate=getEstimatedPopulationParameters(), lower=c.inf, upper=c.sup)
+    c.est <- mlx.getEstimatedPopulationParameters()
+    ci <- data.frame(estimate=mlx.getEstimatedPopulationParameters(), lower=c.inf, upper=c.sup)
     return(list(confint=ci, level=level, method="bootstrap" ))
   }
   
   
-  if (level<=0 | level>=1)
-    stop("Level of the confidence interval should be strictly between 0 and 1", call.=FALSE)
-  
-  if (!grepl("\\.",project))
-    project <- paste0(project,".mlxtran")
-  if(!file.exists(project)){
-    message(paste0("ERROR: project '", project, "' does not exists"))
-    return(invisible(FALSE))}
-  lp <- loadProject(project) 
-  if (!lp) return(invisible(FALSE))
-  
-  launched.tasks <- getLaunchedTasks()
-  
-  if (!launched.tasks[["populationParameterEstimation"]]) {
-    cat("\nEstimation of the population parameters... \n")
-    runPopulationParameterEstimation()
-  }
-  
   if (!linearization) {
     if (!("stochasticApproximation" %in% launched.tasks[["standardErrorEstimation"]]) ) {
-      runStandardErrorEstimation(linearization=FALSE)
+      mlx.runStandardErrorEstimation(linearization=FALSE)
       cat("Estimation of the standard errors ... \n")
     }    
-    se <- as.numeric(unlist(getEstimatedStandardErrors()$stochasticApproximation))
-    names(se) <- names(getEstimatedStandardErrors()$stochasticApproximation)
+    se <- as.numeric(unlist(mlx.getEstimatedStandardErrors()$stochasticApproximation))
+    names(se) <- names(mlx.getEstimatedStandardErrors()$stochasticApproximation)
   } else {
     if (!("linearization" %in% launched.tasks[["standardErrorEstimation"]])) {
       cat("Estimation of the standard errors ... \n")
-      runStandardErrorEstimation(linearization=TRUE)
+      mlx.runStandardErrorEstimation(linearization=TRUE)
     }
-    se <- getEstimatedStandardErrors()$linearization
+    se <- mlx.getEstimatedStandardErrors()$linearization
   }
   
-  param <- getEstimatedPopulationParameters()
+  param <- mlx.getEstimatedPopulationParameters()
   pname <- names(param)
   
   io <- match(pname, names(se))
   se <- se[io]
   
-  indParam.name <- getIndividualParameterModel()$name
-  indParam.dist <- getIndividualParameterModel()$distribution
+  indParam.name <- mlx.getIndividualParameterModel()$name
+  indParam.dist <- mlx.getIndividualParameterModel()$distribution
   p2.name <- sub("_pop","",pname)
   i.pop <- match(indParam.name,p2.name)
   i.log <- i.pop[grep("logNormal", indParam.dist)]
