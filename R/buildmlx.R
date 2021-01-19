@@ -64,6 +64,7 @@ buildmlx <- function(project, final.project=NULL, model="all",
   #lambda='cv', glmnet.settings=NULL)
 {
   
+  RsmlxDemo1.project <- RsmlxDemo2.project <- warfarin.data  <- resMonolix <- NULL
   
   r <- prcheck(project, f="build", paramToUse=paramToUse, model=model)
   if (r$demo)
@@ -441,7 +442,7 @@ buildmlx <- function(project, final.project=NULL, model="all",
       mlx.saveProject(final.project)
       if (dir.exists(final.dir))
         unlink(final.dir, recursive=TRUE)
-      
+      mlx.loadProject(final.project)
       
       if (max.iter>0) {
         
@@ -750,8 +751,8 @@ computecriterion <- function(criterion, method.ll) {
   else if (identical(criterion,"BIC")) cr <- ll[["BIC"]]
   else if (identical(criterion,"BICc")) cr <- ll[["BICc"]]
   else {
-    d <- (ll[["AIC"]] - ll[["-2LL"]])/2
-    cr <- ll[["-2LL"]]+d*criterion
+    d <- (ll[["AIC"]] - ll[["OFV"]])/2
+    cr <- ll[["OFV"]]+d*criterion
   }
   return(cr)
 }

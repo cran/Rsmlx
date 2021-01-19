@@ -4,9 +4,15 @@ errorModelSelection <- function(project=NULL, criterion="BICc", nb.model=1) {
     mlx.loadProject(project)
   
   obs.model <- mlx.getContinuousObservationModel()
-  obs.info <- mlx.getData()
-  i.contObs <- which(obs.info$observationTypes=="continuous") 
-  i.contModel <- which(names(obs.model$prediction) %in% obs.info$observationNames[i.contObs])
+  obs.names <- mlx.getData()$observationNames
+  fit.info <- mlx.getFit()
+  for (noj in seq_along(obs.names)) {
+    nojk <- grep(obs.names[noj],fit.info$data)
+    if (length(nojk)>0)
+      obs.names[noj] <- fit.info$model[nojk]
+  }
+  i.contObs <- which(mlx.getData()$observationTypes=="continuous") 
+  i.contModel <- which(names(obs.model$prediction) %in% obs.names[i.contObs])
   n.out <- length(i.contModel)
   pred <- getSimulatedPredictions()
   d <- mlx.getObservationInformation()

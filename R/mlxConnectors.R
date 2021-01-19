@@ -8,14 +8,21 @@ mlx.getLixoftConnectorsState <- function(quietly = TRUE) {
   return(r)
 }
 
-mlx.initializeLixoftConnectors <- function() {
+mlx.initializeLixoftConnectors <- function(software = "monolix", path="", force = TRUE) {
   r <- NULL
-  .hiddenCall(paste0('r <- lixoftConnectors::initializeLixoftConnectors(software = "monolix", force = TRUE)'))
-  return(r)
+  .hiddenCall(paste0('r <- lixoftConnectors::initializeLixoftConnectors(software = "',software ,'", 
+                     path = "',path,'", force=',force,')'))
+  return(invisible(r))
 }
 
 mlx.setStructuralModel <- function(modelFile = NULL) {
-  .hiddenCall(paste0('r <- lixoftConnectors::setStructuralModel(modelFile = ',modelFile,')'))
+  .hiddenCall(paste0('r <- lixoftConnectors::setStructuralModel(modelFile = "',modelFile,'")'))
+}
+
+mlx.getStructuralModel <- function() {
+  r <- NULL
+  .hiddenCall(paste0('r <- lixoftConnectors::getStructuralModel()'))
+  return(r)
 }
 
 mlx.getPopulationParameterInformation <- function() {
@@ -46,6 +53,15 @@ mlx.getLaunchedTasks <- function() {
 mlx.getEstimatedLogLikelihood <- function() {
   r <- NULL
   .hiddenCall(paste0('r <- lixoftConnectors::getEstimatedLogLikelihood()'))
+  for (k in 1:length(r)) {
+    if (is.list(r[[k]]))
+      r[[k]] <- unlist(r[[k]])
+    if (!is.null(r[[k]]['-2LL'])) 
+      names(r[[k]]) <- gsub("-2LL", "OFV", names(r[[k]]))
+    i0 <- which(names(r[[k]])=='chosenDegree')
+    if (length(i0)>0)
+      r[[k]] <- r[[k]][-i0]
+  }
   return(r)
 }
 
@@ -76,6 +92,12 @@ mlx.getContinuousObservationModel <- function() {
 mlx.getCovariateInformation <- function() {
   r <- NULL
   .hiddenCall(paste0('r <- lixoftConnectors::getCovariateInformation()'))
+  sn <- setdiff(r$name,names(r$covariate))
+  if (length(sn)>0) {
+    d <- mlx.getProjectSettings()$directory
+    p <- read.csv(file.path(d,"individualParameters/estimatedIndividualParameters.txt"))[,c("id",sn)]
+    r$covariate <- merge(r$covariate,p,by="id")
+  }
   return(r)
 }
 
@@ -97,6 +119,10 @@ mlx.getEstimatedRandomEffects <- function() {
 mlx.getEstimatedStandardErrors <- function() {
   r <- NULL
   .hiddenCall(paste0('r <- lixoftConnectors::getEstimatedStandardErrors()'))
+  for (k in 1:length(r)) {
+    if (is.list(r[[k]]))
+      r[[k]] <- unlist(r[[k]])
+  }
   return(r)
 }
 mlx.getGeneralSettings <- function() {
@@ -127,11 +153,13 @@ mlx.getProjectSettings <- function() {
 mlx.getSimulatedIndividualParameters <- function() {
   r <- NULL
   .hiddenCall(paste0('r <- lixoftConnectors::getSimulatedIndividualParameters()'))
+  if (is.factor(r$rep))  r$rep <- as.numeric(as.character(r$rep))
   return(r)
 }
 mlx.getSimulatedRandomEffects <- function() {
   r <- NULL
   .hiddenCall(paste0('r <- lixoftConnectors::getSimulatedRandomEffects()'))
+  if (is.factor(r$rep))  r$rep <- as.numeric(as.character(r$rep))
   return(r)
 }
 mlx.getStandardErrorEstimationSettings <- function() {
@@ -221,11 +249,54 @@ mlx.runPopulationParameterEstimation <- function() {
   .hiddenCall(paste0('r <- lixoftConnectors::runPopulationParameterEstimation()'))
 }
 
-mlx.runLogLikelihoodEstimation <- function(linearization = NULL) {
+mlx.runLogLikelihoodEstimation <- function(linearization = FALSE) {
   .hiddenCall(paste0('r <- lixoftConnectors::runLogLikelihoodEstimation(linearization = linearization)'))
 }
 
+smlx.importMonolixProject <- function(project) {
+  .hiddenCall(paste0('r <- lixoftConnectors::importMonolixProject(project)'))
+}
 
+smlx.setNbReplicates <- function(nrep) {
+  .hiddenCall(paste0('r <- lixoftConnectors::setNbReplicates(nrep)'))
+}
 
+smlx.getNbReplicates <- function() {
+  .hiddenCall(paste0('r <- lixoftConnectors::getNbReplicates()'))
+}
 
-  
+smlx.runSimulation <- function() {
+  .hiddenCall(paste0('r <- lixoftConnectors::runSimulation()'))
+}
+
+smlx.getProjectSettings <- function() {
+  .hiddenCall(paste0('r <- lixoftConnectors::getProjectSettings()'))
+}
+
+smlx.getSimulationResults <- function() {
+  .hiddenCall(paste0('r <- lixoftConnectors::getSimulationResults()'))
+}
+
+smlx.getGroups <- function() {
+  .hiddenCall(paste0('r <- lixoftConnectors::getGroups()'))
+}
+
+smlx.getCovariateElements <- function() {
+  .hiddenCall(paste0('r <- lixoftConnectors::getCovariateElements()'))
+}
+
+smlx.getOccasionElements <- function() {
+  .hiddenCall(paste0('r <- lixoftConnectors::getOccasionElements()'))
+}
+
+smlx.setProjectSettings <- function(...) {
+  .hiddenCall(paste0('r <- lixoftConnectors::setProjectSettings(...)'))
+}
+
+smlx.getOutputElements <- function(...) {
+  .hiddenCall(paste0('r <- lixoftConnectors::getOutputElements(...)'))
+}
+
+smlx.getTreatmentElements <- function(...) {
+  .hiddenCall(paste0('r <- lixoftConnectors::getTreatmentElements(...)'))
+}

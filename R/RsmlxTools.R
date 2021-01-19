@@ -1,6 +1,7 @@
 prcheck <- function(project, f=NULL, settings=NULL, model=NULL, paramToUse=NULL,
                     parameters=NULL, level=NULL, tests=NULL, nboot=NULL, method=NULL) {
   #prcheck <- function(project) {
+  RsmlxDemo1.project <- RsmlxDemo2.project <- warfarin.data  <- resMonolix <- NULL
   if (identical(substr(project,1,9),"RsmlxDemo")) {
     RsmlxDemo1.project <- RsmlxDemo2.project <- warfarin.data  <- resMonolix <- NULL
     rm(RsmlxDemo1.project, RsmlxDemo2.project, warfarin.data, resMonolix)
@@ -53,7 +54,7 @@ prcheck <- function(project, f=NULL, settings=NULL, model=NULL, paramToUse=NULL,
     
   } else {
     
-    if (!initRsmlx())
+    if (!initRsmlx()$status)
       return()
     
     if (!grepl("\\.",project))
@@ -83,32 +84,45 @@ prcheck <- function(project, f=NULL, settings=NULL, model=NULL, paramToUse=NULL,
 #' Initialize Rsmlx library
 #' 
 #' Initialize Rsmlx library
-#' @return A boolean equaling TRUE if the initialization has been successful and FALSE if not.
+#' @param path Monolix path 
+#' @return A list:
+#' \itemize{
+#'   \item \code{software}: the software that is used (should be monolix with Rsmlx)
+#'   \item \code{path}: the path to MonolixSuite
+#'   \item \code{version}: the version of MonolixSuite that is used
+#'   \item \code{status}: boolean equaling TRUE if the initialization has been successful.
+#' }
 #' @examples
 #' \dontrun{
-#' initRsmlx()
+#' initRsmlx()  # print the info about Monolix and lixoftConnectors
+#' initRsmlx(path="C:/ProgramData/Lixoft/MonolixSuite2019R1")  # use MonolixSuite 2019R1
 #' }
 #' @export
-initRsmlx <- function(){
+initRsmlx <- function(path=NULL){
   packinfo <- utils::installed.packages()
-  if (!is.element("lixoftConnectors", packinfo[,1]))
-    stop("You need to install the lixoftConnectors package in order to use Rsmlx", call. = FALSE)
+  # if (!is.element("lixoftConnectors", packinfo[,1]))
+  #   stop("You need to install the lixoftConnectors package in order to use Rsmlx", call. = FALSE)
   
   
   lixoftConnectorsState <- mlx.getLixoftConnectorsState(quietly = TRUE)
   
   if (!is.null(lixoftConnectorsState)){
     
-    if (lixoftConnectorsState$software == "monolix") {
+    if (lixoftConnectorsState$software == "monolix"  && is.null(path)) {
       status=TRUE
     } else {
-      status = mlx.initializeLixoftConnectors()
+      status = mlx.initializeLixoftConnectors(path=path)
     }
     
   } else {
-    status = mlx.initializeLixoftConnectors()
+    status = mlx.initializeLixoftConnectors(path=path)
   }
-  return(invisible(status))
+  lixoftConnectorsState <- mlx.getLixoftConnectorsState(quietly = TRUE)
+  lixoftConnectorsState$status <- status
+  if (is.null(path))
+    return(lixoftConnectorsState)
+  else
+    return(invisible(lixoftConnectorsState))
   
 }
 
@@ -267,7 +281,7 @@ compute.ini <- function(r, parameter) {
     ka_ini <- lm(log(y) ~ time, data=subset(abs, y>0))$coefficients[[2]]
     Tk0_ini <- mean(tmax)
     if (ka_ini>0)
-      V_ini <- 1/mean(ymax)*ka_ini/(ka_ini-k_ini)
+      V_ini <- 1/mean(ymax)*ka_ini/abs(ka_ini-k_ini)
     else
       V_ini <- 1/(Tk0_ini*k_ini*mean(ymax))*(1-exp(-k_ini*Tk0_ini))
     Tlag_ini <- Tk0_ini/5
@@ -360,7 +374,10 @@ compute.bic <- function(parameter, data, new.dir=NULL, level=NULL) {
     mlx.runLogLikelihoodEstimation()
   }
   setwd(w.dir)
-  r$bic <- mlx.getEstimatedLogLikelihood()[[1]][['-2LL']] + (2*length(parameter)+2)*log(n)
+  ofv <- mlx.getEstimatedLogLikelihood()[[1]][['OFV']]
+  # if (is.null(ofv))
+  #   ofv <- mlx.getEstimatedLogLikelihood()[[1]][['OFV']]
+  r$bic <- ofv + (2*length(parameter)+2)*log(n)
   r$pop.est <- mlx.getEstimatedPopulationParameters()
   return(r)
 }
@@ -378,4 +395,88 @@ read.res <- function(file) {
   return(d)
 }
 
+# Get the extension of a file --------------------------------------------------
+.getFileExt <- function(filename) {
+  ext <- utils::tail(strsplit(filename, "\\.")[[1]], n=1)
+  if (ext == filename) ext <- NULL
+  return(ext)
+}
 
+# Round dataframe --------------------------------------------------------------
+.roundDataframe <- function(df, nbDigits) {
+  for (n in names(df)) {
+    df[n] <- sapply(
+      df[[n]],
+      function(x, nbDigits) {
+        if (suppressWarnings(!is.na(as.numeric(x)))) x <- round(as.numeric(x), nbDigits)
+        return(x)
+      },
+      nbDigits
+    )
+  }
+  return(df)
+}
+
+# Get the separator of a file --------------------------------------------------
+.getDelimiter <- function(fileName, sep = NULL){
+  L <- suppressMessages(suppressWarnings(readLines(fileName, n = 1)))
+  sepToCheck = c(' ', '\t', ',', ';')
+  if (!is.null(sep)) sepToCheck <- unique(c(sep, sepToCheck))
+  nSepToCheck <- length(sepToCheck)
+  numfields <- vector(length = nSepToCheck)
+  for(index in 1:nSepToCheck){
+    numfields[index] <- utils::count.fields(textConnection(L), sep = sepToCheck[index])
+  }
+  if (all(numfields == 0)) {
+    sep <- NULL
+  } else {
+    sep <- sepToCheck[min(which.max(numfields))]
+  }
+  return(sep)
+}
+
+# Rename dataframe column ------------------------------------------------------
+.renameColumns <- function(df, oldName, newName){
+  if (length(oldName) != length(newName)) {
+    message("[ERROR] vector of old names and new names must match in size")
+    return(df)
+  }
+  for (i in seq_along(oldName)) {
+    old <- oldName[i]
+    new <- newName[i]
+    if (old %in% names(df)) {
+      names(df)[names(df) == old] <- new
+    }
+  }
+  return(df)
+}
+
+################################################################################
+# Set lixoft connectors options
+################################################################################
+set_options <- function(errors = NULL, warnings = NULL, info = NULL) {
+  options_list <- list(errors = errors, warnings = warnings, info = info)
+  options_list <- options_list[!unlist(lapply(options_list, is.null))]
+  op <- getOption("lixoft_notificationOptions")
+  for (i in seq_along(options_list)) {
+    oname <- names(options_list)[[i]]
+    oval <- options_list[[i]]
+    if (!is.null(oval)) {
+      if (!oval) {
+        op[[oname]] <- 1
+      } else {
+        op[[oname]] <- 0
+      }
+    }
+  }
+  options(lixoft_notificationOptions = op)
+  return(invisible(TRUE))
+}
+
+get_lixoft_options <- function() {
+  op <- getOption("lixoft_notificationOptions")
+  errors <- ifelse(op$errors == 1, FALSE, TRUE)
+  warnings <- ifelse(op$warnings == 1, FALSE, TRUE)
+  info <- ifelse(op$info == 1, FALSE, TRUE)
+  return(list(errors = errors, warnings = warnings, info = info))
+}

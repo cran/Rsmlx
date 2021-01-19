@@ -39,8 +39,10 @@
 pkbuild <- function(data=NULL, project=NULL, stat=FALSE, param="clearance", new.dir=".", 
                     MM=FALSE, level=NULL, settings.stat=NULL) {
   
-  if (!initRsmlx())
+  if (!initRsmlx()$status)
     return()
+  
+  RsmlxDemo1.project <- RsmlxDemo2.project <- warfarin.data  <- resMonolix <- NULL
   
   if (!is.null(project)) {
     r <- prcheck(project)
@@ -214,7 +216,7 @@ check.pkbuild <- function(data, param, MM, level) {
     stop("Valid header types should be provided", call.=FALSE)
   
   if (is.null(data$administration)) 
-    stop("Route of administration should be provided in data$headerTypes", call.=FALSE)
+    stop("Route of administration should be provided in data (e.g. data$administation='oral')", call.=FALSE)
   
   admList <- c('IV', 'BOLUS', 'INFUSION', 'ORAL', 'EV')
   if (!(toupper(data$administration) %in% admList ))

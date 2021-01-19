@@ -18,7 +18,7 @@
 #' @export
 getEstimatedIndividualParameters2 <- function() {
   
-  if (!initRsmlx())
+  if (!initRsmlx()$status)
     return()
   
   ind.param <- mlx.getEstimatedIndividualParameters()
@@ -80,7 +80,7 @@ getEstimatedIndividualParameters2 <- function() {
 #' @export
 getEstimatedPredictions <- function() {
   
-  if (!initRsmlx())
+  if (!initRsmlx()$status)
     return()
   
   ip <- getEstimatedIndividualParameters2()
@@ -130,7 +130,7 @@ getEstimatedPredictions <- function() {
 #' @export
 getEstimatedResiduals <- function() {
   
-  if (!initRsmlx())
+  if (!initRsmlx()$status)
     return()
   
   df=getEstimatedPredictions()
@@ -197,7 +197,7 @@ getEstimatedResiduals <- function() {
 #' @export
 getSimulatedPredictions <- function() {
   
-  if (!initRsmlx())
+  if (!initRsmlx()$status)
     return()
   
   sip <- mlx.getSimulatedIndividualParameters()
@@ -253,7 +253,7 @@ getSimulatedPredictions <- function() {
 #' @export
 getSimulatedResiduals <- function() {
   
-  if (!initRsmlx())
+  if (!initRsmlx()$status)
     return()
   
   df=getSimulatedPredictions()
@@ -320,7 +320,7 @@ getSimulatedResiduals <- function() {
 #' @export
 getEstimatedCovarianceMatrix <- function() {
   
-  if (!initRsmlx())
+  if (!initRsmlx()$status)
     return()
   
   param <- mlx.getEstimatedPopulationParameters()
@@ -380,4 +380,39 @@ error.parameter <- function(project=NULL) {
   return(r)
 }
 
-
+#-------------------------------------------------
+mlx.getFit <- function() {
+  project <- mlx.getProjectSettings()$project
+  con     <- file(project, open = "r")
+  lines   <- readLines(con, warn=FALSE)
+  close(con)
+  lines <- gsub("\\;.*","",lines)
+  l.fit <- grep("<FIT>", lines)
+  lines <- lines[l.fit:length(lines)]
+  l.data <- lines[grep("data", lines)[1]]
+  l.model <- lines[grep("model", lines)[1]]
+  
+  ll <- gsub(" ","",l.data)
+  ll <- gsub("data=","",ll)
+  if (grepl("\\{",ll)) {
+    i1 <- regexpr("\\{",ll)
+    i2 <- regexpr("\\}",ll)
+    ll <- substr(ll,i1+1,i2-1)
+    data.names  <- strsplit(ll,",")[[1]]
+  } else {
+    data.names <- ll
+  }
+  ll <- gsub(" ","",l.model)
+  ll <- gsub("model=","",ll)
+  if (grepl("\\{",ll)) {
+    i1 <- regexpr("\\{",ll)
+    i2 <- regexpr("\\}",ll)
+    ll <- substr(ll,i1+1,i2-1)
+    model.names  <- strsplit(ll,",")[[1]]
+  } else {
+    model.names <- ll
+  }
+  
+  return(list(data=data.names, model=model.names))
+}
+  
