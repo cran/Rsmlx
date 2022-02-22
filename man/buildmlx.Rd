@@ -2,7 +2,7 @@
 % Please edit documentation in R/buildmlx.R
 \name{buildmlx}
 \alias{buildmlx}
-\title{Automatic model building}
+\title{Automatic statistical model building}
 \usage{
 buildmlx(
   project,
@@ -11,16 +11,22 @@ buildmlx(
   paramToUse = "all",
   covToTest = "all",
   covToTransform = "none",
+  center.covariate = FALSE,
   criterion = "BICc",
-  direction = NULL,
-  max.iter = 20,
-  print = TRUE,
-  nb.model = 1,
   linearization = FALSE,
-  seqcc = FALSE,
-  p.max = 1,
+  ll = T,
+  pen.cov = 1,
+  direction = NULL,
   steps = 1000,
-  exp.iter = 2
+  max.iter = 20,
+  explor.iter = 2,
+  seq.cov = FALSE,
+  seq.cov.iter = 0,
+  seq.corr = TRUE,
+  p.max = 0.1,
+  p.min = c(0.075, 0.05, 0.1),
+  print = TRUE,
+  nb.model = 1
 )
 }
 \arguments{
@@ -36,25 +42,37 @@ buildmlx(
 
 \item{covToTransform}{list of (continuous) covariates to be log-transformed (default="none")}
 
+\item{center.covariate}{TRUE/{FALSE} center the covariates of the final model (default=FALSE)}
+
 \item{criterion}{penalization criterion to optimize c("AIC", "BIC", {"BICc"}, gamma)}
+
+\item{linearization}{TRUE/{FALSE} whether the computation of the likelihood is based on a linearization of the model (default=FALSE, deprecated)}
+
+\item{ll}{{TRUE}/FALSE  compute the observe likelihood and the criterion to optimize at each iteration}
+
+\item{pen.cov}{multiplicative penalty term for the covariate model (default=1)}
 
 \item{direction}{method for covariate search c({"full"}, "both", "backward", "forward"), (default="full" or "both")}
 
+\item{steps}{maximum number of iteration for stepAIC (default=1000)}
+
 \item{max.iter}{maximum number of iterations (default=20)}
+
+\item{explor.iter}{number of iterations during the exploratory phase (default=2)}
+
+\item{seq.cov}{TRUE/{FALSE} whether the covariate model is built before the correlation model}
+
+\item{seq.cov.iter}{number of iterations before building the correlation model (only when seq.cov=F, default=0)}
+
+\item{seq.corr}{{TRUE}/FALSE whether the correlation model is built iteratively (default=TRUE)}
+
+\item{p.max}{maximum p-value used for removing non significant relationships between covariates and individual parameters (default=0.1)}
+
+\item{p.min}{minimum p-values used for testing the components of a new model (default=c(0.075, 0.05, 0.1))}
 
 \item{print}{{TRUE}/FALSE display the results (default=TRUE)}
 
 \item{nb.model}{number of models to display at each iteration (default=1)}
-
-\item{linearization}{TRUE/{FALSE} whether the computation of the likelihood is based on a linearization of the model (default=FALSE)}
-
-\item{seqcc}{TRUE/{FALSE} whether the covariate model is built before the correlation model (default=FALSE)}
-
-\item{p.max}{maximum p-value (for the correlation test) for keeping a covariate in a model  (default=1)}
-
-\item{steps}{maximum number of iteration for stepAIC (default=1000)}
-
-\item{exp.iter}{number of iterations during the exploratory phase (default=1)}
 }
 \value{
 a new Monolix project with a new statistical model.
@@ -72,7 +90,6 @@ Several strategies can be used for building the covariate model at each iteratio
 \code{direction="full"} means that all the possible models are compared (default when the number of covariates
 is less than 10). Othrwise, \code{direction} is the mode of stepwise search of \code{stepAIC {MASS}}, 
 can be one of "both", "backward", or "forward", with a default of "both" when there are at least 10 covariates.
-
 See http://rsmlx.webpopix.org for more details.
 }
 \examples{

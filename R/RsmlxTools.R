@@ -54,6 +54,9 @@ prcheck <- function(project, f=NULL, settings=NULL, model=NULL, paramToUse=NULL,
     
   } else {
     
+    if (grepl("2020",initRsmlx()$version) | grepl("2019",initRsmlx()$version) )
+      stop("Rsmlx 4.x is compatible only with MonolixSuite >= 2021R1" , call.=FALSE)
+    
     if (!initRsmlx()$status)
       return()
     
@@ -227,8 +230,16 @@ pk.estim <- function(r, admin) {
       yi1['time'] <- yi1['time'] - tri1$time[1]
       if (admin=="oral") {
         j.max1 <- which.max(yi1[[gn]])
+        if (j.max1 == 1) {
+          yi1 <- rbind(yi1[1,], yi1)
+          yi1[1,'time'] <- yi1[1,'time']/4
+          yi1[1,gn] <- yi1[1,gn]/2
+          j.max1 <- 2
+        }
         if (length(j.max1)>0 && j.max1>1) {
           abs <- rbind(abs, yi1[1:(j.max1-1),])
+          # if (length(j.max1)>0) {
+          #   abs <- rbind(abs, yi1[1:(j.max1),])
           if (j.max1<nrow(yi1)) 
             max1 <- rbind(max1,yi1[j.max1,])
         }
@@ -278,7 +289,10 @@ compute.ini <- function(r, parameter) {
   if (admin=="oral") {
     ymax <- th$max1$y
     tmax <- th$max1$time
-    ka_ini <- lm(log(y) ~ time, data=subset(abs, y>0))$coefficients[[2]]
+    ka_ini <- lm(log(y) ~  time, data=subset(abs, y>0))$coefficients[[2]]
+    if (ka_ini < 0)
+      ka_ini <- 1
+#    ka_ini <- lm(y ~ -1 + time, data=subset(abs, y>0))$coefficients[[1]]
     Tk0_ini <- mean(tmax)
     if (ka_ini>0)
       V_ini <- 1/mean(ymax)*ka_ini/abs(ka_ini-k_ini)
