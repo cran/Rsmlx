@@ -5,15 +5,18 @@
 \title{Automatic model variance building}
 \usage{
 buildVar(
-  project,
+  project = NULL,
   final.project = NULL,
+  prior = NULL,
+  weight = NULL,
+  cv.min = 0.001,
   fix.param1 = NULL,
   fix.param0 = NULL,
   criterion = "BICc",
   linearization = F,
   remove = T,
   add = T,
-  delta = c(30, 5),
+  delta = c(30, 10, 5),
   omega.set = NULL,
   pop.set1 = NULL,
   pop.set2 = NULL,
@@ -25,6 +28,12 @@ buildVar(
 
 \item{final.project}{a string: the final Monolix project (default adds "_var" to the original project)}
 
+\item{prior}{named vector of prior probabilities (default=NULL)}
+
+\item{weight}{named vector of weights (default=NULL)}
+
+\item{cv.min}{value of the coefficient of variation below which an individual parameter is considered fixed (default=0.001)}
+
 \item{fix.param1}{parameters with variability that cannot be removed (default=NULL)}
 
 \item{fix.param0}{parameters without variability that cannot be added (default=NULL)}
@@ -33,11 +42,11 @@ buildVar(
 
 \item{linearization}{TRUE/{FALSE} whether the computation of the likelihood is based on a linearization of the model (default=FALSE)}
 
-\item{remove}{try to remove random effects (default=T)}
+\item{remove}{{TRUE}/FALSE try to remove random effects (default=TRUE)}
 
-\item{add}{try to add random effects (default=T)}
+\item{add}{{TRUE}/FALSE try to add random effects (default=TRUE)}
 
-\item{delta}{maximum difference in criteria for testing a new model (default=c(30,5))}
+\item{delta}{maximum difference in criteria for testing a new model (default=c(30,10,5))}
 
 \item{omega.set}{settings to define how a variance varies during iterations of SAEM}
 

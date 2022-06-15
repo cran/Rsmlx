@@ -11,6 +11,8 @@ pkbuild(
   param = "clearance",
   new.dir = ".",
   MM = FALSE,
+  linearization = F,
+  criterion = "BICc",
   level = NULL,
   settings.stat = NULL
 )
@@ -33,6 +35,10 @@ pkbuild(
 (default is the current working directory) )}
 
 \item{MM}{({FALSE}, TRUE): tested models include or not Michaelis Menten elimination models}
+
+\item{linearization}{TRUE/{FALSE} whether the computation of the likelihood is based on a linearization of the model (default=FALSE)}
+
+\item{criterion}{penalization criterion to optimize c("AIC", "BIC", {"BICc"}, gamma)}
 
 \item{level}{an integer between 1 and 9 (used by setSettings)}
 
