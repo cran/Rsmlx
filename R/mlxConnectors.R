@@ -122,6 +122,12 @@ mlx.getCovariateInformation <- function() {
   return(r)
 }
 
+mlx.getAllCovariateInformation <- function() {
+  r <- NULL
+  .hiddenCall(paste0('r <- lixoftConnectors::getCovariateInformation()'))
+  return(r)
+}
+
 mlx.getData <- function() {
   r <- NULL
   .hiddenCall(paste0('r <- lixoftConnectors::getData()'))
@@ -231,6 +237,15 @@ mlx.setIndividualParameterModel <- function(a) {
   .hiddenCall(paste0('lixoftConnectors::setIndividualParameterModel(a)'))
 }
 
+mlx.getMapping <- function() {
+  r <- NULL
+  .hiddenCall(paste0('r <- lixoftConnectors::getMapping()'))
+  return(r)
+}
+
+mlx.setMapping <- function(a) {
+  .hiddenCall(paste0('lixoftConnectors::setMapping(a)'))
+}
 
 mlx.setCorrelationBlocks <- function(a) {
   .hiddenCall(paste0('r <- lixoftConnectors::setCorrelationBlocks(a)'))
@@ -254,8 +269,14 @@ mlx.newProject <- function(data = NULL, modelFile = NULL) {
   .hiddenCall(paste0('r <- lixoftConnectors::newProject(data = data, modelFile = modelFile)'))
 }
 
-mlx.setProjectSettings <- function(directory=NULL) {
-  .hiddenCall(paste0('r <- lixoftConnectors::setProjectSettings(directory = directory)'))
+mlx.setProjectSettings <- function(directory = NULL, dataandmodelnexttoproject = NULL) {
+  if (!is.null(directory)) {
+    .hiddenCall(paste0('r <- lixoftConnectors::setProjectSettings(directory = directory)'))
+  } else {
+    if (!is.null(dataandmodelnexttoproject)) {
+      .hiddenCall(paste0('r <- lixoftConnectors::setProjectSettings(dataandmodelnexttoproject = dataandmodelnexttoproject)'))
+    }
+  }
 }
 mlx.setStandardErrorEstimationSettings  <- function(a) {
   .hiddenCall(paste0('r <- lixoftConnectors::setStandardErrorEstimationSettings (a)'))
@@ -266,7 +287,11 @@ mlx.setObservationDistribution  <- function(a) {
 
 
 mlx.saveProject <- function(projectFile=NULL) {
-  .hiddenCall(paste0('r <- lixoftConnectors::saveProject(projectFile = projectFile)'))
+  if (is.null(projectFile)) {
+    .hiddenCall(paste0('r <- lixoftConnectors::saveProject()'))
+  } else {
+    .hiddenCall(paste0('r <- lixoftConnectors::saveProject(projectFile = projectFile)'))
+  }
 }
 
 mlx.runPopulationParameterEstimation <- function(parameters=NULL) {
@@ -283,8 +308,52 @@ mlx.runLogLikelihoodEstimation <- function(linearization = FALSE) {
   .hiddenCall(paste0('r <- lixoftConnectors::runLogLikelihoodEstimation(linearization = linearization)'))
 }
 
+mlx.getLibraryModelName <- function(library) {
+  .hiddenCall(paste0('r <- lixoftConnectors::getLibraryModelName(library)'))
+}
+
+mlx.saveFormattedFile <- function(path) {
+  .hiddenCall(paste0('r <- lixoftConnectors::getFormatting()'))
+  .hiddenCall(paste0('r$formattedFile <- path'))
+  .hiddenCall(paste0('do.call(lixoftConnectors::formatData, r)'))
+}
+
+mlx.getFormatting <- function() {
+  r <- NULL
+  .hiddenCall(paste0('r <- lixoftConnectors::getFormatting()'))
+  return(r)
+}
+
+smlx.exportSimulatedData <- function(path) {
+  version <- mlx.getLixoftConnectorsState()$version
+  v <- regmatches(version, regexpr("^[0-9]*", version, perl = TRUE))
+  if (v >= 2023) {
+    .hiddenCall(paste0('r <- lixoftConnectors::exportSimulatedData(path)'))
+  } else {
+    resultsPath <- NULL
+    .hiddenCall(paste0('r <- lixoftConnectors::exportSimulatedData()'))
+    .hiddenCall(paste0('resultsPath <- lixoftConnectors::getProjectSettings()'))
+    old_path <- file.path(resultsPath$directory, "Simulation", "simulatedData.txt")
+    file.copy(from = old_path, to = path)
+  }
+}
+
+
 smlx.importMonolixProject <- function(project) {
-  .hiddenCall(paste0('r <- lixoftConnectors::importMonolixProject(project)'))
+  version <- mlx.getLixoftConnectorsState()$version
+  v <- regmatches(version, regexpr("^[0-9]*", version, perl = TRUE))
+  if (v >= 2023) {
+    .hiddenCall(paste0('r <- lixoftConnectors::importProject(project)'))
+  } else {
+    .hiddenCall(paste0('r <- lixoftConnectors::importMonolixProject(project)'))
+  }
+  
+}
+
+mlx.getAvailableData <- function() {
+  r <- NULL
+  .hiddenCall(paste0('r <- lixoftConnectors::getAvailableData()'))
+  return(r)
 }
 
 smlx.setNbReplicates <- function(nrep) {

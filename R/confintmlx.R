@@ -51,8 +51,8 @@
 #' # Confidence intervals are computed using 200 bootstrap samples:
 #' r3 <- confintmlx(project="RsmlxDemo2.mlxtran", method="bootstrap", nboot=200)
 #' 
-#' # See http://rsmlx.webpopix.org/userguide/confintmlx/ for detailed examples of use of confintmlx
-#' # Download the demo examples here: http://rsmlx.webpopix.org/installation
+#' # See http://monolix.lixoft.com/rsmlx/confintmlx/ for detailed examples of use of confintmlx
+#' # Download the demo examples here: http://monolix.lixoft.com/rsmlx/installation
 #'
 #' 
 #' @importFrom stats qchisq
@@ -82,6 +82,8 @@ confintmlx <- function(project, parameters="all", method="fim", level=0.90,
   if (method=="proflike") {
     if (identical(parameters, "all"))
       parameters=NULL
+    if (!linearization)
+      settings$method <- "is"
     settings$dLLthreshold <- qchisq(level,1)
     r <- llp(project, parameters, settings)
     r$level <- level

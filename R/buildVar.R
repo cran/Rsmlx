@@ -6,7 +6,7 @@
 #' Penalization criterion can be either a custom penalization of the form gamma*(number of parameters),
 #' AIC (gamma=2) or BIC (gamma=log(N)).
 #' 
-#' See http://rsmlx.webpopix.org for more details.
+#' See https://monolix.lixoft.com/rsmlx/ for more details.
 #' @param project a string: the initial Monolix project
 #' @param final.project  a string: the final Monolix project (default adds "_var" to the original project)
 #' @param prior  named vector of prior probabilities (default=NULL)
@@ -37,8 +37,8 @@
 #' 
 #' }
 #' 
-#' # See http://rsmlx.webpopix.org/userguide/buildvar/ for detailed examples of use of buildvar
-#' # Download the demo examples here: http://rsmlx.webpopix.org/installation
+#' # See http://monolix.lixoft.com/rsmlx/buildvar/ for detailed examples of use of buildvar
+#' # Download the demo examples here: http://monolix.lixoft.com/rsmlx/installation
 #' 
 #' 
 #' @importFrom stats coef as.formula model.matrix integrate
@@ -77,7 +77,6 @@ buildVar <- function(project=NULL,final.project=NULL, prior=NULL, weight=NULL, c
   
   for (j in 1:length(r))
     eval(parse(text=paste0(names(r)[j],"= r[[j]]")))
-  
   r <- def.variable(weight, prior, criterion)
   for (j in 1:length(r))
     eval(parse(text=paste0(names(r)[j],"= r[[j]]")))
@@ -128,7 +127,7 @@ buildVar <- function(project=NULL,final.project=NULL, prior=NULL, weight=NULL, c
     mlx.setIndividualParameterModel(g)
     change.ini <- T
   }
-  
+
   p.param1 <- sapply(mlx.getIndividualParameterModel()$name,function(x) NULL)
   lpar <- max(nchar(mlx.getIndividualParameterModel()$name))
   
@@ -168,7 +167,7 @@ buildVar <- function(project=NULL,final.project=NULL, prior=NULL, weight=NULL, c
         }
         param0 <- c(param0, list.param1[j0])
         param1 <- setdiff(param1, list.param1[j0])
-        update.project(project, project.built, param0, param1, NULL, pop.set1)
+        update_project(project, project.built, param0, param1, NULL, pop.set1)
         list.param1 <- names(which(!unlist(lapply(p.param1[param1], function(x) all(param1 %in% x)))))
         list.param1 <- setdiff(list.param1, fix.param1)
       }
@@ -194,6 +193,14 @@ buildVar <- function(project=NULL,final.project=NULL, prior=NULL, weight=NULL, c
   N <- nrow(p0.ind)
   
   g <- as.list(mlx.getLaunchedTasks())
+
+  if (!linearization | !linearization.iter) {
+    if (!("importanceSampling" %in% g[['logLikelihoodEstimation']])) {
+      mlx.runConditionalDistributionSampling()
+      mlx.runLogLikelihoodEstimation(linearization=FALSE)
+    }
+  }
+
   if (linearization | linearization.iter) {
     if (!("linearization" %in% g[['logLikelihoodEstimation']])) {
       if (!g$conditionalModeEstimation) {
@@ -202,16 +209,10 @@ buildVar <- function(project=NULL,final.project=NULL, prior=NULL, weight=NULL, c
       mlx.runLogLikelihoodEstimation(linearization=TRUE)
     }
   }
-  
-  if (!linearization | !linearization.iter) {
-    if (!("importanceSampling" %in% g[['logLikelihoodEstimation']])) {
-      mlx.runConditionalDistributionSampling()
-      mlx.runLogLikelihoodEstimation(linearization=FALSE)
-    }
-  }
+
   BICc.built <- compute.criterion(criterion, method.ll, weight, pen.coef)
   BICc.built.iter <- compute.criterion(criterion, method.ll.iter, weight, pen.coef)
-  
+
   mlx.setInitialEstimatesToLastEstimates(fixedEffectsOnly = FALSE)
   mlx.saveProject(project.built)
   
@@ -354,7 +355,7 @@ buildVar <- function(project=NULL,final.project=NULL, prior=NULL, weight=NULL, c
               }
               param0 <- c(param0, p.min)
               param1 <- setdiff(param1, p.min)
-              update.project(project.built, project.temp, param0, param1, pop.min[[i.min]], pop.set1)
+              update_project(project.built, project.temp, param0, param1, pop.min[[i.min]], pop.set1)
               
               if (print)
                 cat("\nfitting the model with no variability on ", param0, ": ")
@@ -437,7 +438,7 @@ buildVar <- function(project=NULL,final.project=NULL, prior=NULL, weight=NULL, c
           stop.remove=T
         }
       } 
-      update.project(project.built, project.built, param0.built, param1.built, pop.built, pop.set1)
+      update_project(project.built, project.built, param0.built, param1.built, pop.built, pop.set1)
       change.remove <- change
       if (change.remove)
         change.any <- T
@@ -545,7 +546,7 @@ buildVar <- function(project=NULL,final.project=NULL, prior=NULL, weight=NULL, c
               param1 <- c(param1, p.min)
               param0 <- setdiff(param0, p.min)
               fparam0 <- c(fix.param0,param0)
-              update.project(project.built, project.temp, param0, param1, pop.min[[i.min]], pop.set1)
+              update_project(project.built, project.temp, param0, param1, pop.min[[i.min]], pop.set1)
               
               if (print) {
                 if (length(fparam0)>0)
@@ -618,7 +619,7 @@ buildVar <- function(project=NULL,final.project=NULL, prior=NULL, weight=NULL, c
         }
       }
       #      browser()
-      update.project(project.built, project.built, param0.built, param1.built, pop.built, pop.set1)
+      update_project(project.built, project.built, param0.built, param1.built, pop.built, pop.set1)
       stop <- !change
       if (change)
         change.any <- T
@@ -669,7 +670,7 @@ buildVar <- function(project=NULL,final.project=NULL, prior=NULL, weight=NULL, c
             change0 <- T
             param0 <- c(param0, list.param1[j0])
             param1 <- setdiff(param1, list.param1[j0])
-            update.project(project.built, project.built, param0, param1, NULL, pop.set0)
+            update_project(project.built, project.built, param0, param1, NULL, pop.set0)
             mlx.saveProject(project.built)
             mlx.runPopulationParameterEstimation(parameters=ind.built)
           } else {
@@ -707,7 +708,7 @@ buildVar <- function(project=NULL,final.project=NULL, prior=NULL, weight=NULL, c
     # ll <- formatLL(mlx.getEstimatedLogLikelihood()[[method.ll]], criterion, ll.final, is.weight, is.prior)
     # to.cat <- paste0("\nEstimated criteria (",method.ll,"):\n")
     # to.print <- round(ll,2)
-    # print.result(print, NULL, to.cat=to.cat, to.print=to.print) 
+    # print_result(print, NULL, to.cat=to.cat, to.print=to.print) 
     
   } else {
     if (print) {
@@ -818,7 +819,7 @@ runPopEstOmega <- function(omega=NULL, o.ini=NULL, o.final=NULL, r.o=0.001, K.in
     return(estimates)
 }
 
-update.project <- function(project, project.temp, param0, param1, pop=NULL, pop.set) {
+update_project <- function(project, project.temp, param0, param1, pop=NULL, pop.set) {
   mlx.loadProject(project)
   ind.mod <- mlx.getIndividualParameterModel()
   cb <- ind.mod$correlationBlocks$id
@@ -1051,7 +1052,7 @@ compute.cv <- function(vp, lp) {
 #       
 #       param1 <- c(setdiff(param1, p.min[2]), p.min[1])
 #       param0 <- c(setdiff(param0, p.min[1]), p.min[2])
-#       update.project(project.built, project.built, param0, param1, pop.min, pop.set1)
+#       update_project(project.built, project.built, param0, param1, pop.min, pop.set1)
 #       
 #       # num.mod <- BinToDec(mlx.getIndividualParameterModel()$variability$id*1)
 #       # i.mod0 <- which(num.mod == list.mod0)
@@ -1095,7 +1096,7 @@ compute.cv <- function(vp, lp) {
 #       stop.swap <- T
 #     }
 #   }
-#   update.project(project.built, project.built, param0.built, param1.built, pop.built, pop.set1)
+#   update_project(project.built, project.built, param0.built, param1.built, pop.built, pop.set1)
 #   change.swap <- change
 #   if (change.swap)
 #     change.any <- T

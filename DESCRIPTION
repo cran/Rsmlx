@@ -1,11 +1,12 @@
 Package: Rsmlx
 Type: Package
 Title: R Speaks 'Monolix'
-Version: 5.0.1
+Version: 2023.1.1
 Authors@R: c(
-    person( "Marc", "Lavielle", role = c("aut","cre"), email = "Marc.Lavielle@inria.fr" ),
+    person( "Frano", "Mihaljevic", role = c("aut","cre"), email = "Frano.Mihaljevic@simulations-plus.com" ),
+    person( "Marc", "Lavielle", role = c("ctb"), email = "Marc.Lavielle@inria.fr" ),
     person( "Jonathan", "Chauvin", role = c("ctb"), email = "Jonathan.Chauvin@lixoft.com" ),
-    person( "Clémence", "Pinaud", role = c("ctb"), email = "Clemence.Pinaud@lixoft.com" ))
+    person( "Clémence", "Pinaud", role = c("ctb")))
 Description: Provides methods for model building and model evaluation of mixed effects models using 
     'Monolix' <https://monolix.lixoft.com>. 'Monolix' is a software tool for nonlinear mixed effects 
     modeling that must have been installed in order to use 'Rsmlx'. 
@@ -13,12 +14,12 @@ Description: Provides methods for model building and model evaluation of mixed e
     statistical tests for model assessment, bootstrap simulation and likelihood profiling for 
     computing confidence intervals. 'Rsmlx' also proposes several automatic covariate search methods for 
     mixed effects models. 
-URL: http://rsmlx.webpopix.org
+URL: https://monolix.lixoft.com/rsmlx/
 SystemRequirements: 'Monolix' (<https://monolix.lixoft.com>)
 Depends: R (>= 3.0.0)
 Imports: graphics, grDevices, utils, stats, MASS, ggplot2, gridExtra,
         dplyr, tidyr
-Suggests: mlxR,
+Suggests: mlxR
 Collate: mlxConnectors.R bootstrap.R buildmlx.R buildVar.R buildAll.R
         confintmlx.R correlationModelSelection.R
         covariateModelSelection.R covariateSearch.R
@@ -30,11 +31,12 @@ Copyright: Inria
 NeedsCompilation: no
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.1.2
-Packaged: 2022-06-15 16:27:56 UTC; Marc
-Author: Marc Lavielle [aut, cre],
+RoxygenNote: 7.2.3
+Packaged: 2023-06-14 13:11:08 UTC; FranoMihaljevic
+Author: Frano Mihaljevic [aut, cre],
+  Marc Lavielle [ctb],
   Jonathan Chauvin [ctb],
   Clémence Pinaud [ctb]
-Maintainer: Marc Lavielle <Marc.Lavielle@inria.fr>
+Maintainer: Frano Mihaljevic <Frano.Mihaljevic@simulations-plus.com>
 Repository: CRAN
-Date/Publication: 2022-06-15 16:50:02 UTC
+Date/Publication: 2023-06-14 23:12:05 UTC

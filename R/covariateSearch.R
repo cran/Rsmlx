@@ -50,8 +50,8 @@
 #'                       paramToUse = c("V","Cl"), 
 #'                       covToTest  = c("age","wt"))
 #' 
-#' # See http://rsmlx.webpopix.org/userguide/covariatesearch/ for detailed examples of covariatesearch
-#' # Download the demo examples here: http://rsmlx.webpopix.org/installation
+#' # See http://monolix.lixoft.com/rsmlx/covariatesearch/ for detailed examples of covariatesearch
+#' # Download the demo examples here: http://monolix.lixoft.com/rsmlx/installation
 #'
 #'
 #' @export
@@ -99,11 +99,12 @@ covariateSearch <- function(project, final.project=NULL, method = NULL, covToTes
   meanCov <- NULL
   if(!is.null(covToTransform)){
     if(!.checkCovariateSearchInput(inputName = "covToTest", inputValue = covToTransform)){return(invisible(FALSE))}
-    if(is.null(covToTest)){
+    if(is.null(covToTest) && is.null(testRelations)){
       covToTest <- mlx.getCovariateInformation()$name
     }
     for(index in 1:length(covToTransform)){
       cov <- covToTransform[index]
+      indexCov <- NULL
       eval(parse(text=paste0('indexCov <- which(names(mlx.getCovariateInformation()$type)=="',cov,'")')))
       if(length(intersect(mlx.getCovariateInformation()$type[indexCov],"continuous"))>0){
         eval(parse(text=paste0('meanCov <- mean(mlx.getCovariateInformation()$covariate$',cov,')')))
@@ -112,14 +113,8 @@ covariateSearch <- function(project, final.project=NULL, method = NULL, covToTes
         cat(paste0(newCov," was added. \n" ))
         
         # Add it in the covariate to test
-        covToTest = c(covToTest, newCov)
-        # Add it in the relationships if any
-        if(!is.null(testRelations)){
-          for(indexCov in 1:length(testRelations)){
-            if(length(intersect(cov,testRelations[[indexCov]]))>0){
-              testRelations[[indexCov]] <- c(testRelations[[indexCov]], newCov)
-            }
-          }
+        if (!is.null(covToTest)) {
+          covToTest = c(covToTest, newCov)
         }
       }else{
         warning(paste0("Covariate ",cov," can not be transformed as a continuous covariate"))        
@@ -145,7 +140,7 @@ covariateSearch <- function(project, final.project=NULL, method = NULL, covToTes
   # Check the testRelations
   if(!is.null(testRelations)){
     if(!is.null(covToTest)||!is.null(paramToUse)){
-      message(paste0("ERROR: testRelations can not be defined of either covToTest or paramToUse is not NULL"))
+      message(paste0("ERROR: testRelations can not be defined if either covToTest or paramToUse is not NULL"))
       return(invisible(FALSE))
     }
     if(!.checkCovariateSearchInput(inputName = "testRelations", inputValue = testRelations)){return(invisible(FALSE))}

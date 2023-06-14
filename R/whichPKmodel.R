@@ -1,7 +1,7 @@
 #' Find a Monolix PK model
 #'
 #' Return the path of the Monolix PK model defined by a list of parameter names
-#' See http://rsmlx.webpopix.org/whichPKmodel/ for more details.
+#' See https://monolix.lixoft.com/rsmlx/whichPKmodel/ for more details.
 #' @param parameter a vector of PK parameter names
 #' @param mlxPath path to Monolix install
 #' @param pkPath path to the Monolix PK library
@@ -15,7 +15,7 @@
 #session <- "C:/ProgramData/Lixoft/MonolixSuite2018R2"
 
 
-whichPKmodel <- function(parameter, mlxPath=NULL, pkPath=NULL, lib=FALSE) {
+whichPKmodel <- function(parameter, mlxPath = NULL, pkPath = NULL, lib = FALSE) {
   
   if (!initRsmlx()$status)
     return()
@@ -24,16 +24,21 @@ whichPKmodel <- function(parameter, mlxPath=NULL, pkPath=NULL, lib=FALSE) {
   parameter[parameter=="Q"] <- "Q2"
   parameter[parameter=="V"] <- "V1"
   parameter <- sort(parameter)
-  
-  
-  if (is.null(pkPath))  {
-    if (is.null(mlxPath)) 
-      mlxPath <- mlx.path()
-  pkPath <- file.path(mlxPath,"factory/library/pk")
+
+  version <- mlx.getLixoftConnectorsState()$version
+  v <- regmatches(version, regexpr("^[0-9]*", version, perl = TRUE))
+  if (v < 2023) {
+    if (is.null(pkPath))  {
+      if (is.null(mlxPath))
+        mlxPath <- mlx.path()
+      pkPath <- file.path(mlxPath,"factory/library/pk")
+    }
+    d <- dir(pkPath)
+  } else {
+    d <- gsub("lib:", "", mlx.getLibraryModelName("pk"))
+    lib <- TRUE
   }
-  
-  
-  d <- dir(pkPath)
+
   id0 <- c(grep("alpha",d), grep("bolus_",d))
   d <- d0 <- d[-id0]
   d <- gsub("kk","kek",d)
@@ -48,9 +53,9 @@ whichPKmodel <- function(parameter, mlxPath=NULL, pkPath=NULL, lib=FALSE) {
     lk <- plist[unlist(lapply(plist, function(x) grepl(x, d[k])))]
     if (identical(sort(lk), parameter)) 
       if (lib)
-      return(paste0("lib:",d0[k]))
-    else
-      return(file.path(pkPath,d0[k]))
+        return(paste0("lib:",d0[k]))
+      else
+        return(file.path(pkPath,d0[k]))
   }
   
   stop("The model was not found in the PK library", call.=FALSE)
