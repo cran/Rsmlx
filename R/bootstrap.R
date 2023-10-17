@@ -168,7 +168,7 @@ bootmlx <- function(project, nboot = 100, dataFolder = NULL, parametric = FALSE,
       # Check if header names match between data and Monolix
       originalData <- read.res(mlx.getData()$dataFile)
       if (!all(mlx.getData()$header == names(originalData))) {
-        stop('[ERROR] Monolix headers do not match headers in the data set. Special characters (such as space " ", slash "/", parenthesis "(", or symbols e. "%") as well as several columns with the same header are not supported by bootmlx. Please modify the headers of the original dataset, load the new dataset in Monolix and retry.')
+        stop('[ERROR] Monolix headers do not match headers in the data set. Special characters (such as space " ", slash "/", parenthesis "(", or symbols e. "%") as well as several columns with the same header are not supported by bootmlx. Please modify the headers of the original dataset, load the modified dataset in Monolix and retry. If you are using an R version prior to 4.2, the cause of this error could be the encoding of the data set file (UTF-8-BOM instead of UTF-8).')
       }
     }
     
@@ -326,11 +326,11 @@ generateDataSetResample = function(project, settings, boot.folder, dataFolder){
         if(length(indexUsedCat)>0){
           # Check if all used modalities are in the data set
           for(iUsedCat in 1:length(indexUsedCat)){
-            catModalities <- unique(refCovInfo$covariate[,indexUsedCat[iUsedCat]+1])
+            catModalities <- unique(refCovInfo$covariate[, which(names(refCovInfo$covariate)==refCovInfo$name[indexUsedCat[iUsedCat]])])
             catSamplesModalities <- NULL
             for(indexSamples in 1:length(sampleIDs)){
               idIndex = which(refCovInfo$covariate[,1]==sampleIDs[indexSamples])
-              catSamplesModalities <- c(catSamplesModalities, refCovInfo$covariate[idIndex,indexUsedCat[iUsedCat]+1])
+              catSamplesModalities <- c(catSamplesModalities, refCovInfo$covariate[idIndex,which(names(refCovInfo$covariate)==refCovInfo$name[indexUsedCat[iUsedCat]])])
             }
             areAllModalitiesdrawn <- areAllModalitiesdrawn&(length(catModalities)==length(unique(catSamplesModalities)))
           }
@@ -712,8 +712,7 @@ runBootstrapProject <- function(projectBoot, indexSample, settings) {
   } else {
     bootData$observationTypes <- unname(refData$observationTypes)
   }
-
-  bootData <- bootData[c("dataFile", "headerTypes", "observationTypes")]
+  bootData <- bootData[c("dataFile", "headerTypes", "observationTypes", "nbSSDoses")]
   
   return(bootData)
 }

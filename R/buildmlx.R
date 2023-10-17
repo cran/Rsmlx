@@ -23,23 +23,23 @@
 #' @param paramToUse  list of parameters possibly function of covariates (default="all")
 #' @param covToTest  components of the covariate model that can be modified   (default="all")
 #' @param covToTransform  list of (continuous) covariates to be log-transformed (default="none")
-#' @param center.covariate TRUE/{FALSE} center the covariates of the final model (default=FALSE) 
-#' @param criterion  penalization criterion to optimize c("AIC", "BIC", {"BICc"}, gamma)
-#' @param test  {TRUE}/FALSE  perform additional statistical tests for building the model (default=TRUE)
-#' @param ll  {TRUE}/FALSE  compute the observe likelihood and the criterion to optimize at each iteration
-#' @param linearization  TRUE/{FALSE} whether the computation of the likelihood is based on a linearization of the model (default=FALSE)
+#' @param center.covariate TRUE/FALSE center the covariates of the final model (default=FALSE) 
+#' @param criterion  penalization criterion to optimize c("AIC", "BIC", "BICc", gamma) (default=BICc)
+#' @param test  TRUE/FALSE  perform additional statistical tests for building the model (default=TRUE)
+#' @param ll  TRUE/FALSE  compute the observe likelihood and the criterion to optimize at each iteration
+#' @param linearization  TRUE/FALSE whether the computation of the likelihood is based on a linearization of the model (default=FALSE)
 #' @param fError.min  minimum fraction of residual variance for combined error model (default = 1e-3)
-#' @param seq.cov TRUE/{FALSE} whether the covariate model is built before the correlation model  
+#' @param seq.cov TRUE/FALSE whether the covariate model is built before the correlation model  
 #' @param seq.cov.iter number of iterations before building the correlation model (only when seq.cov=F, default=0) 
-#' @param seq.corr {TRUE}/FALSE whether the correlation model is built iteratively (default=TRUE) 
+#' @param seq.corr TRUE/FALSE whether the correlation model is built iteratively (default=TRUE) 
 #' @param p.max  maximum p-value used for removing non significant relationships between covariates and individual parameters (default=0.1)
 #' @param p.min vector of 3 minimum p-values used for testing the components of a new model (default=c(0.075, 0.05, 0.1))
-#' @param direction method for covariate search c({"full"}, "both", "backward", "forward"), (default="full" or "both")
+#' @param direction method for covariate search c("full", "both", "backward", "forward"), (default="full" or "both")
 #' @param steps maximum number of iteration for stepAIC (default=1000)
 #' @param n.full  maximum number of covariates for an exhaustive comparison of all possible covariate models (default=10)
 #' @param max.iter maximum number of iterations (default=20)
 #' @param explor.iter  number of iterations during the exploratory phase (default=2)
-#' @param print {TRUE}/FALSE display the results (default=TRUE)
+#' @param print TRUE/FALSE display the results (default=TRUE)
 #' @param nb.model number of models to display at each iteration (default=1)
 #' @return a new Monolix project with a new statistical model.
 #' @examples
@@ -152,7 +152,6 @@ buildmlx <- function(project=NULL, final.project=NULL, model="all", prior=NULL, 
   print_result(print, summary.file, to.cat=to.cat, to.print=NULL) 
   
   print.line <- F
-  launched.tasks <- mlx.getLaunchedTasks()
   # if (!launched.tasks[["populationParameterEstimation"]]) {
   #   to.cat <- paste0(plain.line,"\nEstimation of the population parameters using the initial model ... \n")
   #   print_result(print, summary.file, to.cat=to.cat, to.print=NULL) 
@@ -202,12 +201,13 @@ buildmlx <- function(project=NULL, final.project=NULL, model="all", prior=NULL, 
   }
   
   
-  if (!launched.tasks[["populationParameterEstimation"]]) {
+  if (!mlx.getLaunchedTasks()[["populationParameterEstimation"]]) {
     to.cat <- "\nEstimation of the population parameters using the initial model ... \n"
     print_result(print, summary.file, to.cat=to.cat, to.print=NULL) 
     mlx.runPopulationParameterEstimation()
   }
-  if (!launched.tasks[["conditionalDistributionSampling"]]) {
+
+  if (!mlx.getLaunchedTasks()[["conditionalDistributionSampling"]]) {
     to.cat <- "Sampling of the conditional distribution using the initial model ... \n"
     print_result(print, summary.file, to.cat=to.cat, to.print=NULL) 
     mlx.runConditionalDistributionSampling()
@@ -216,6 +216,8 @@ buildmlx <- function(project=NULL, final.project=NULL, model="all", prior=NULL, 
   gi <- mlx.getSimulatedIndividualParameters()
   gi <- gi %>% filter(rep==gi$rep[nrow(gi)]) %>% select(-rep)
   lin.ll <- method.ll=="linearization"
+  launched.tasks <- mlx.getLaunchedTasks()
+  
   if (iop.ll) {
     if (!(method.ll %in% launched.tasks[["logLikelihoodEstimation"]]))  {
       if (lin.ll & !launched.tasks[["conditionalModeEstimation"]])
@@ -1346,7 +1348,7 @@ formatLL <- function(ll, criterion, cr, is.weight, is.prior=F) {
       llr[paste0("w",criterion)] <- cr
     }
   }
-  if (!is.na(ll["standardError"]))
+  if (!is.null(ll) && !is.na(ll["standardError"]))
     llr["s.e."] <- ll["standardError"]
   return(llr)
 }

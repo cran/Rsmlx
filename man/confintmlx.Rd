@@ -20,11 +20,11 @@ confintmlx(
 
 \item{parameters}{list of parameters for which confidence intervals are computed (default="all")}
 
-\item{method}{method c({"fim"}, "proflike", "bootstrap")}
+\item{method}{method c("fim", "proflike", "bootstrap") (default="fim")}
 
 \item{level}{confidence level, a real number between 0 and 1 (default=0.90)}
 
-\item{linearization}{{TRUE}/FALSE  whether the calculation of the standard errors 
+\item{linearization}{TRUE/FALSE  whether the calculation of the standard errors (default=TRUE)
 or the profile likelihood  is based on a linearization of the model (default=TRUE)}
 
 \item{nboot}{number of bootstrat replicates (default=100, used when method="bootstrap")}
@@ -36,7 +36,7 @@ or the profile likelihood  is based on a linearization of the model (default=TRU
 \item \code{max.iter} maximum number of iterations to find the solution (default=10)
 \item \code{tol.LL} absolute tolerance for -2LL  (default=0.001)
 \item \code{tol.param} relative tolerance for the parameter (default=0.01)
-\item \code{print} {TRUE}/FALSE display the results (default=TRUE)
+\item \code{print} TRUE/FALSE display the results (default=TRUE)
 }}
 }
 \value{
