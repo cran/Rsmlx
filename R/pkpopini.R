@@ -36,8 +36,7 @@
 #' @export
 pkpopini <- function(data=NULL, project=NULL, parameter=NULL, new.project=NULL, new.dir=NULL, par.ini=NULL) {
 
-  if (!initRsmlx()$status)
-    return()
+  initRsmlx()
   
   if (!is.null(project)) {
     r <- prcheck(project)
@@ -107,7 +106,7 @@ pkpopini <- function(data=NULL, project=NULL, parameter=NULL, new.project=NULL, 
   )
   
   #mlx.newProject(data = c(data, list(observationTypes = list(y1="continuous"), nbSSDoses = 10)), modelFile = new.model)
-  mlx.newProject(data = data, modelFile = new.model)
+  mlx.newProject(data = data[names(data) != "administration"], modelFile = new.model)
   g <- mlx.getContinuousObservationModel()
   eval(parse(text=paste0('lixoftConnectors::setErrorModel(',names(g$errorModel),'= "combined2")')))
   

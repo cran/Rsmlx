@@ -20,7 +20,7 @@ confintmlx(
 
 \item{parameters}{list of parameters for which confidence intervals are computed (default="all")}
 
-\item{method}{method c("fim", "proflike", "bootstrap") (default="fim")}
+\item{method}{method \code{c("fim", "proflike", "bootstrap")} (default="fim")}
 
 \item{level}{confidence level, a real number between 0 and 1 (default=0.90)}
 
@@ -29,7 +29,7 @@ or the profile likelihood  is based on a linearization of the model (default=TRU
 
 \item{nboot}{number of bootstrat replicates (default=100, used when method="bootstrap")}
 
-\item{parametric}{boolean to define if parametric bootstrap is performed (new data is drawn from the model), (default: false)}
+\item{parametric}{boolean to define if parametric bootstrap is performed (new data is drawn from the model), (default: FALSE)}
 
 \item{settings}{a list of settings for the profile likelihood method:
 \itemize{
@@ -46,18 +46,31 @@ a list with the computed confidence intervals, the method used and the level.
 Compute confidence intervals for the population parameters estimated by Monolix.
 }
 \details{
+Most functionality to compute confidence intervals (other than profile likelihood) is 
+now available directly in the lixoftConnectors package. Please migrate 
+the following uses of this function:
+\tabular{lll}{
+confintmlx method \tab \tab lixoftConnectors function \cr
+\code{"fim"} \tab \code{linearizarion = TRUE} \tab \code{getEstimatedConfidenceIntervals} (method = "linearization") \cr
+\code{"fim"} \tab \code{linearizarion = FALSE} \tab \code{getEstimatedConfidenceIntervals} (method = "stochasticApproximation") \cr
+\code{"bootstrap"} \tab \code{parametric = TRUE} \tab \code{runBootstrap} (method = "parametric") \cr
+\code{"bootstrap"} \tab \code{parametric = FALSE} \tab \code{runBootstrap} (method = "nonparametric") \cr
+}
+For \code{method="proflike"}, continue using this function.
+
 The method used for computing the confidence intervals can be either based on the 
 standard errors derived from an estimation of the Fisher Information Matrix ("fim"),
 on the profile likelihood ("proflike") or on nonparametric bootstrap estimate ("bootstrap").
 \code{method="fim"} is used by default.
 
-When method="fim", the FIM can be either estimated using a linearization of the model 
-or a stochastic approximation. When method="proflike", the observed likelihood can be 
+When \code{method="fim"}, the FIM can be either estimated using a linearization of the model 
+or a stochastic approximation. When \code{method="proflike"}, the observed likelihood can be 
 either estimated using a linearization of the model or an importance sampling Monte Carlo 
-procedure. When method="bootstrap", the bootstrap estimates are obtained using the bootmlx
+procedure. When \code{method="bootstrap"}, the bootstrap estimates are obtained using the bootmlx
 function
 }
 \examples{
+\dontrun{
 # RsmlxDemo2.mlxtran is a Monolix project for modelling the PK of warfarin using a PK model 
 # with parameters ka, V, Cl.
 
@@ -78,9 +91,13 @@ r <- confintmlx(project    = "RsmlxDemo2.mlxtran",
 
 # Confidence intervals are computed using 200 bootstrap samples:
 r3 <- confintmlx(project="RsmlxDemo2.mlxtran", method="bootstrap", nboot=200)
+}
 
 # See http://monolix.lixoft.com/rsmlx/confintmlx/ for detailed examples of use of confintmlx
 # Download the demo examples here: http://monolix.lixoft.com/rsmlx/installation
 
-
+}
+\seealso{
+\code{getEstimatedConfidenceIntervals} replaces this function for \code{method = "fim"} in lixoftConnectors \cr
+\code{runBootstrap} replaces this function for \code{method = "bootstrap"} in lixoftConnectors
 }

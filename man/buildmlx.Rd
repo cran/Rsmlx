@@ -93,11 +93,14 @@ buildmlx(
 a new Monolix project with a new statistical model.
 }
 \description{
+Automatic statistical model building is available directly in the lixoftConnectors package using the function
+\code{runModelBuilding}.
+}
+\details{
 buildmlx uses SAMBA (Stochastic Approximation for Model Building Algorithm), an iterative procedure to accelerate and optimize the process of model building by identifying 
 at each step how best to improve some of the model components. This method allows to find 
 the optimal statistical model which minimizes some information criterion in very few steps.
-}
-\details{
+
 Penalization criterion can be either a custom penalization of the form gamma*(number of parameters),
 AIC (gamma=2) or BIC (gamma=log(N)).
 
@@ -108,6 +111,7 @@ can be one of "both", "backward", or "forward", with a default of "both" when th
 See https://monolix.lixoft.com/rsmlx/ for more details.
 }
 \examples{
+\dontrun{
 # RsmlxDemo1.mlxtran is a Monolix project for modelling the pharmacokinetics (PK) of warfarin 
 # using a PK model with parameters ka, V, Cl.
 
@@ -124,9 +128,14 @@ r2 <- buildmlx(project="RsmlxDemo1.mlxtran", paramToUse=c("V", "Cl"), covToTrans
 
 # Only the covariate model will be  built, using AIC instead of BIC:
 r3 <- buildmlx(project="RsmlxDemo1.mlxtran", model="covariate", criterion="AIC") 
+}
 
 # See http://monolix.lixoft.com/rsmlx/buildmlx/ for detailed examples of use of buildmlx
 # Download the demo examples here: http://monolix.lixoft.com/rsmlx/installation
 
-
+}
+\seealso{
+\code{getModelBuildingSettings} settings for model building with lixoftConnectors \cr
+\code{runModelBuilding} run model building with lixoftConnectors \cr
+\code{getModelBuildingResults} results for model building with lixoftConnectors
 }

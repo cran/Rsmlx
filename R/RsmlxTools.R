@@ -54,12 +54,6 @@ prcheck <- function(project, f=NULL, settings=NULL, model=NULL, paramToUse=NULL,
     
   } else {
     
-    if (grepl("2020",initRsmlx()$version) | grepl("2019",initRsmlx()$version) )
-      stop("Rsmlx versions above 4.0 are compatible only with MonolixSuite >= 2021R1" , call.=FALSE)
-    
-    if (!initRsmlx()$status)
-      return()
-    
     if (!grepl("\\.",project))
       project <- paste0(project,".mlxtran")
     
@@ -86,7 +80,7 @@ prcheck <- function(project, f=NULL, settings=NULL, model=NULL, paramToUse=NULL,
 
 #' Initialize Rsmlx library
 #' 
-#' Initialize Rsmlx library
+#' Initialize Rsmlx library and lixoftConnectors. Prints information about the versions of Monolix and lixoftConnectors used.
 #' @param path Monolix path 
 #' @return A list:
 #' \itemize{
@@ -97,15 +91,21 @@ prcheck <- function(project, f=NULL, settings=NULL, model=NULL, paramToUse=NULL,
 #' }
 #' @examples
 #' \dontrun{
-#' initRsmlx()  # print the info about Monolix and lixoftConnectors
-#' initRsmlx(path="C:/ProgramData/Lixoft/MonolixSuite2019R1")  # use MonolixSuite 2019R1
+#' initRsmlx() 
+#' initRsmlx(path="C:/ProgramData/Lixoft/MonolixSuite2024R1")  # specifiy a specific path
 #' }
 #' @export
 initRsmlx <- function(path=NULL){
-  packinfo <- utils::installed.packages()
-  # if (!is.element("lixoftConnectors", packinfo[,1]))
-  #   stop("You need to install the lixoftConnectors package in order to use Rsmlx", call. = FALSE)
+  if (system.file(package = "lixoftConnectors") == "")
+    stop("You need to install the lixoftConnectors package in order to use Rsmlx", call. = FALSE)
   
+  ver_Connectors <- packageVersion("lixoftConnectors")
+  ver_Rsmlx <- packageVersion("Rsmlx")
+  
+  if (ver_Rsmlx$major != ver_Connectors$major) {
+    stop(paste0("The major version number for the lixoftConnectors package and the Rsmlx package must be the same:\nlixoftConnectors package version -> ",
+                ver_Connectors, "\nRsmlx package version -> ", ver_Rsmlx), call. = FALSE)
+  }
   
   lixoftConnectorsState <- mlx.getLixoftConnectorsState(quietly = TRUE)
   
@@ -120,13 +120,24 @@ initRsmlx <- function(path=NULL){
   } else {
     status = mlx.initializeLixoftConnectors(path=path)
   }
+  
   lixoftConnectorsState <- mlx.getLixoftConnectorsState(quietly = TRUE)
   lixoftConnectorsState$status <- status
+  ver_lixoft <- lixoftConnectorsState$version
+  ver_lixoft_major <- as.numeric(sub("([0-9]+).*$", "\\1", ver_lixoft))
+  
+  if (ver_Rsmlx$major != ver_lixoft_major) {
+    stop(paste0("The major version number for MonolixSuite and the Rsmlx package must be the same:\nMonolixSuite version -> ",
+                ver_lixoft, "\nRsmlx package version -> ", ver_Rsmlx), call. = FALSE)
+  }
+  
+  if (!status)
+    stop("Failed to initialize lixoftConnectors package.", call. = FALSE)
+  
   if (is.null(path))
     return(lixoftConnectorsState)
   else
     return(invisible(lixoftConnectorsState))
-  
 }
 
 
@@ -290,7 +301,7 @@ compute.ini <- function(r, parameter) {
     ymax <- th$max1$y
     tmax <- th$max1$time
     ka_ini <- lm(log(y) ~  time, data=subset(abs, y>0))$coefficients[[2]]
-    if (ka_ini < 0)
+    if (is.na(ka_ini) || ka_ini < 0)
       ka_ini <- 1
     #    ka_ini <- lm(y ~ -1 + time, data=subset(abs, y>0))$coefficients[[1]]
     Tk0_ini <- mean(tmax)

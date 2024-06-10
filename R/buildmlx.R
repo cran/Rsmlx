@@ -1,5 +1,8 @@
 #' Automatic statistical model building
 #'
+#' Automatic statistical model building is available directly in the lixoftConnectors package using the function
+#' \code{runModelBuilding}. 
+#'
 #' buildmlx uses SAMBA (Stochastic Approximation for Model Building Algorithm), an iterative procedure to accelerate and optimize the process of model building by identifying 
 #' at each step how best to improve some of the model components. This method allows to find 
 #' the optimal statistical model which minimizes some information criterion in very few steps.
@@ -42,7 +45,11 @@
 #' @param print TRUE/FALSE display the results (default=TRUE)
 #' @param nb.model number of models to display at each iteration (default=1)
 #' @return a new Monolix project with a new statistical model.
+#' @seealso \code{getModelBuildingSettings} settings for model building with lixoftConnectors \cr
+#' \code{runModelBuilding} run model building with lixoftConnectors \cr
+#' \code{getModelBuildingResults} results for model building with lixoftConnectors
 #' @examples
+#' \dontrun{
 #' # RsmlxDemo1.mlxtran is a Monolix project for modelling the pharmacokinetics (PK) of warfarin 
 #' # using a PK model with parameters ka, V, Cl.
 #' 
@@ -59,10 +66,10 @@
 #' 
 #' # Only the covariate model will be  built, using AIC instead of BIC:
 #' r3 <- buildmlx(project="RsmlxDemo1.mlxtran", model="covariate", criterion="AIC") 
+#' }
 #' 
 #' # See http://monolix.lixoft.com/rsmlx/buildmlx/ for detailed examples of use of buildmlx
 #' # Download the demo examples here: http://monolix.lixoft.com/rsmlx/installation
-#' 
 #' 
 #' @importFrom MASS addterm dropterm 
 #' @importFrom stats coef as.formula model.matrix deviance formula extractAIC factor.scope nobs terms update update.formula
@@ -79,8 +86,11 @@ buildmlx <- function(project=NULL, final.project=NULL, model="all", prior=NULL, 
                      p.max=0.1, p.min=c(0.075, 0.05, 0.1),
                      print=TRUE, nb.model=1)
 {
+  message("This functionality is directly available in the lixoftConnectors package with the function runModelBuilding.", call. = FALSE)
   
   ptm <- proc.time()
+  
+  initRsmlx()
   
   dashed.line <- "--------------------------------------------------\n"
   plain.line <-  "__________________________________________________\n"
